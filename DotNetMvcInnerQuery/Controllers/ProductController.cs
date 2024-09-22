@@ -48,7 +48,7 @@ namespace DotNetMvcInnerQuery.Controllers
         // GET: Product/Create
         public IActionResult Create()
         {
-            ViewData["ProviderId"] = new SelectList(_context.Set<Provider>(), "Id", "Id");
+            ViewData["ProviderId"] = new SelectList(_context.Set<Provider>(), "Id", "Name");
             return View();
         }
 
@@ -82,7 +82,7 @@ namespace DotNetMvcInnerQuery.Controllers
             {
                 return NotFound();
             }
-            ViewData["ProviderId"] = new SelectList(_context.Set<Provider>(), "Id", "Id", product.ProviderId);
+            ViewData["ProviderId"] = new SelectList(_context.Set<Provider>(), "Id", "Name", product.ProviderId);
             return View(product);
         }
 
