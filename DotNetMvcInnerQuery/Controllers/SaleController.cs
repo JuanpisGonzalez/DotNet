@@ -49,8 +49,8 @@ namespace DotNetMvcInnerQuery.Controllers
         // GET: Sale/Create
         public IActionResult Create()
         {
-            ViewData["ClientId"] = new SelectList(_context.Set<Client>(), "Id", "Id");
-            ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Id");
+            ViewData["ClientId"] = new SelectList(_context.Set<Client>(), "Id", "Name");
+            ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Product");
             return View();
         }
 
@@ -68,8 +68,8 @@ namespace DotNetMvcInnerQuery.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ClientId"] = new SelectList(_context.Set<Client>(), "Id", "Id", sale.ClientId);
-            ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Id", sale.ProductId);
+            ViewData["ClientId"] = new SelectList(_context.Set<Client>(), "Id", "Name", sale.ClientId);
+            ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Name", sale.ProductId);
             return View(sale);
         }
 
@@ -86,8 +86,8 @@ namespace DotNetMvcInnerQuery.Controllers
             {
                 return NotFound();
             }
-            ViewData["ClientId"] = new SelectList(_context.Set<Client>(), "Id", "Id", sale.ClientId);
-            ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Id", sale.ProductId);
+            ViewData["ClientId"] = new SelectList(_context.Set<Client>(), "Id", "Name", sale.ClientId);
+            ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Name", sale.ProductId);
             return View(sale);
         }
 
@@ -124,8 +124,8 @@ namespace DotNetMvcInnerQuery.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ClientId"] = new SelectList(_context.Set<Client>(), "Id", "Id", sale.ClientId);
-            ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Id", sale.ProductId);
+            ViewData["ClientId"] = new SelectList(_context.Set<Client>(), "Id", "Name", sale.ClientId);
+            ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Name", sale.ProductId);
             return View(sale);
         }
 
