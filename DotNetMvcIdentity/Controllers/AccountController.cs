@@ -20,8 +20,9 @@ namespace DotNetMvcIdentity.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Register()
+        public async Task<IActionResult> Register(string returnUrl = null)
         {
+            ViewData["returnUrl"] = returnUrl;
             RegisterViewModel registerVM = new RegisterViewModel();//Create a new object view
 
             return View(registerVM);//Return the view to be showed in the browser
@@ -29,8 +30,10 @@ namespace DotNetMvcIdentity.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(RegisterViewModel rgViewModel)
+        public async Task<IActionResult> Register(RegisterViewModel rgViewModel, string returnUrl = null)
         {
+            ViewData["returnUrl"] = returnUrl;
+            returnUrl = returnUrl ?? Url.Content("~/");
             if (ModelState.IsValid)
             {
                 var user = new AppUser()
@@ -50,10 +53,13 @@ namespace DotNetMvcIdentity.Controllers
 
                 var result = await _userManager.CreateAsync(user, rgViewModel.Password);
 
-                if (result.Succeeded) {
+                if (result.Succeeded)
+                {
                     await _signInManager.SignInAsync(user, isPersistent: false);
 
-                    return RedirectToAction("Index", "Home");//method, controller
+                    //return RedirectToAction("Index", "Home");//method, controller
+                    //return Redirect(returnUrl); Avoid open redirect attacks
+                    return LocalRedirect(returnUrl);
                 }
                 ValidateErrors(result);
             }
@@ -71,15 +77,18 @@ namespace DotNetMvcIdentity.Controllers
 
         //Show login form
         [HttpGet]
-        public IActionResult Login()
+        public IActionResult Login(string returnUrl = null)
         {
+            ViewData["returnUrl"] = returnUrl;
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginViewModel lgViewModel)
+        public async Task<IActionResult> Login(LoginViewModel lgViewModel, string returnUrl = null)
         {
+            ViewData["returnUrl"] = returnUrl;
+            returnUrl = returnUrl ?? Url.Content("~/");
             if (ModelState.IsValid)
             {
                 var result = await _signInManager.PasswordSignInAsync(
@@ -90,7 +99,8 @@ namespace DotNetMvcIdentity.Controllers
 
                 if (result.Succeeded)
                 {
-                    return RedirectToAction("Index", "Home");//method, controller
+                    //return RedirectToAction("Index", "Home");//method, controller
+                    return LocalRedirect(returnUrl);
                 }
                 else
                 {

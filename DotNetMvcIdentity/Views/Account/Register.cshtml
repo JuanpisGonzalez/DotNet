@@ -8,7 +8,7 @@
 <div class="card">
     <div class="card-body">
         <h3 class="card-title text-center">Registro de usuario</h3>
-        <form asp-controller="Account" asp-action="Register" method="POST">
+        <form asp-controller="Account" asp-action="Register" asp-route-returnUrl="@ViewData["returnUrl"]"  method="POST">
             <div class="text-danger" asp-validation-summary="All"></div>
 
             <div class="row mt-4">

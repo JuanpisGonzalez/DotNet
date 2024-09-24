@@ -18,6 +18,16 @@ namespace DotNetMvcIdentity
             //Add identity
             builder.Services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>();
 
+            //Change login default route
+            builder.Services.ConfigureApplicationCookie(options =>
+            {
+                options.LoginPath = new PathString("/Account/Login");//"/Controller/Method"
+                options.Cookie.HttpOnly = true; // Seguridad
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Solo en HTTPS
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(60); // Duración de la cookie
+                options.SlidingExpiration = true; // Renueva la cookie al usarla
+            });
+
             // Add services to the container.
             builder.Services.AddControllersWithViews();
 
