@@ -18,6 +18,16 @@ namespace DotNetMvcIdentity
             //Add identity
             builder.Services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>();
 
+            //Identity configuration options
+
+            builder.Services.Configure<IdentityOptions>(options =>
+            {
+                options.Password.RequiredLength = 5;
+                options.Password.RequireLowercase = true;
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+                options.Lockout.MaxFailedAccessAttempts = 3;
+            });
+
             //Change login default route
             builder.Services.ConfigureApplicationCookie(options =>
             {

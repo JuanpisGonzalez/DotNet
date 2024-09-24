@@ -91,16 +91,25 @@ namespace DotNetMvcIdentity.Controllers
             returnUrl = returnUrl ?? Url.Content("~/");
             if (ModelState.IsValid)
             {
+                var user = await _userManager.FindByEmailAsync(lgViewModel.Email);
                 var result = await _signInManager.PasswordSignInAsync(
                     lgViewModel.Email,
                     lgViewModel.Password,
                     lgViewModel.RememberMe,
-                    lockoutOnFailure: false);
+                    lockoutOnFailure: true);
 
                 if (result.Succeeded)
                 {
                     //return RedirectToAction("Index", "Home");//method, controller
                     return LocalRedirect(returnUrl);
+                }
+                if (await _userManager.CheckPasswordAsync(user, lgViewModel.Password))
+                {
+                    if (result.IsLockedOut)
+                    {
+                        //return RedirectToAction("Index", "Home");//method, controller
+                        return View("Blocked");
+                    }
                 }
                 else
                 {
