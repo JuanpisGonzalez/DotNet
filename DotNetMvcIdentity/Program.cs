@@ -32,6 +32,7 @@ namespace DotNetMvcIdentity
             builder.Services.ConfigureApplicationCookie(options =>
             {
                 options.LoginPath = new PathString("/Account/Login");//"/Controller/Method"
+                options.AccessDeniedPath = new PathString("/Account/Blocked");//"/Controller/Method"
                 options.Cookie.HttpOnly = true; // Seguridad
                 options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Solo en HTTPS
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(60); // Duración de la cookie
