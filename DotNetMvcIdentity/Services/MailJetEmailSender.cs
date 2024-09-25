@@ -2,9 +2,9 @@
 
 namespace DotNetMvcIdentity.Services
 {
-    public class MailJetEmailSender : IEmailSender
+    public class MailJetEmailSender /*: IEmailSender*/
     {
-        private readonly IConfiguration _configuration;
+       /* private readonly IConfiguration _configuration;
 
         public MailJetEmailSender(IConfiguration configuration)
         {
@@ -13,6 +13,6 @@ namespace DotNetMvcIdentity.Services
         public Task SendEmailAsync(string email, string subject, string htmlMessage)
         {
             
-        }
+        }*/
     }
 }

@@ -16,7 +16,7 @@ namespace DotNetMvcIdentity
             ));
 
             //Add identity
-            builder.Services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>();
+            builder.Services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
 
             //Identity configuration options
 

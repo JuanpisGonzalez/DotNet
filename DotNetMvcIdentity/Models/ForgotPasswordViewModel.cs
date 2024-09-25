@@ -2,7 +2,7 @@
 
 namespace DotNetMvcIdentity.Models
 {
-    public class ForgotPassword
+    public class ForgotPasswordViewModel
     {
         [Required(ErrorMessage = "Email is required")]
         [EmailAddress]
