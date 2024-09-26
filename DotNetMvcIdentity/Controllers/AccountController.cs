@@ -2,6 +2,7 @@
 using DotNetMvcIdentity.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DotNetMvcIdentity.Controllers
@@ -10,11 +11,11 @@ namespace DotNetMvcIdentity.Controllers
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
-        private readonly EmailSender _emailSender;
+        private readonly IEmailSender _emailSender;
 
-        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager)
+        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IEmailSender emailSender)
         {
-            _emailSender = new EmailSender();
+            _emailSender = emailSender;
             _userManager = userManager;
             _signInManager = signInManager;
         }
@@ -143,7 +144,7 @@ namespace DotNetMvcIdentity.Controllers
         [ValidateAntiForgeryToken]//avid xss atacks
         public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel fpViewModel)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
                 var user = await _userManager.FindByEmailAsync(fpViewModel.Email);
                 if (user == null) {
@@ -151,7 +152,7 @@ namespace DotNetMvcIdentity.Controllers
                 }
 
                 var code = await _userManager.GeneratePasswordResetTokenAsync(user);
-                var returnUrl = Url.Action("RestPassword", "Account", new {userId = user.Id, code }, protocol: HttpContext.Request.Scheme);
+                var returnUrl = Url.Action("ResetPassword", "Account", new {userId = user.Id, code }, protocol: HttpContext.Request.Scheme);
 
                 await _emailSender.SendEmailAsync(fpViewModel.Email, "Password recovery - Identity project", $"Please recover your password clicking here: {returnUrl}");
                 return RedirectToAction("ForgotPasswordConfirm");
@@ -160,9 +161,8 @@ namespace DotNetMvcIdentity.Controllers
             return View(fpViewModel);
         }
 
-        [HttpPost]
+        [HttpGet]
         [AllowAnonymous]
-        [ValidateAntiForgeryToken]
         public IActionResult ForgotPasswordConfirm()
         {
             return View();
@@ -178,7 +178,7 @@ namespace DotNetMvcIdentity.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ResetPassword(PasswordRecoverViewModel prViewModel)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
                 var user = await _userManager.FindByEmailAsync(prViewModel.Email);
                 if (user == null)

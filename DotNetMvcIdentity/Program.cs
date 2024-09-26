@@ -1,5 +1,7 @@
 using DotNetMvcIdentity.Data;
+using DotNetMvcIdentity.Services;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace DotNetMvcIdentity
@@ -15,9 +17,9 @@ namespace DotNetMvcIdentity
             options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServerConnection")
             ));
 
+            builder.Services.AddTransient<IEmailSender, EmailSender>();
             //Add identity
             builder.Services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
-
             //Identity configuration options
 
             builder.Services.Configure<IdentityOptions>(options =>
