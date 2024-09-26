@@ -47,7 +47,7 @@ export class InitComponent {
   }
 
   Update(object:Employee) {
-    this.router.navigate(['/employee', object.IdEmployee])
+    this.router.navigate(['/Employee', object.IdEmployee])
   }
 
   Delete(object:Employee) {

@@ -1,1 +1,32 @@
-<p>employee works!</p>
+<div class="mat-elevation-z2" style="width: 30%; padding: 30px; margin: 50px auto; display: flex; justify-content: center;">
+    <form [formGroup]="formEmployee">
+        <div class="flex">
+            <mat-form-field>
+                <mat-label>Full Name</mat-label>
+                <input matInput formControlName="FullName">
+              </mat-form-field>
+        </div>
+        <div class="flex">
+            <mat-form-field>
+                <mat-label>Email</mat-label>
+                <input matInput formControlName="Email">
+              </mat-form-field>
+        </div>
+        <div class="flex">
+            <mat-form-field>
+                <mat-label>Salary</mat-label>
+                <input type="number" matInput formControlName="Salary">
+              </mat-form-field>
+        </div>
+        <div class="flex">
+            <mat-form-field>
+                <mat-label>Contract date</mat-label>
+                <input matInput formControlName="ContractDate">
+              </mat-form-field>
+        </div>
+        <div class="flex">
+            <button mat-fab color="primary" (click)="Save()">Save</button>
+            <button mat-fab color="primary" (click)="ComeBack()" style="margin-left: 8px;">Come back</button>
+        </div>
+    </form>
+</div>

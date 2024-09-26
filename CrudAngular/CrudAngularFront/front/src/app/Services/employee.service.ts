@@ -19,7 +19,7 @@ export class EmployeeService {
   }
 
   Get(id:number){
-    return this.http.get<Employee>(`${this.apiUrl}/${id}}`);
+    return this.http.get<Employee>(`${this.apiUrl}/${id}`);
   }
 
   Create(object:Employee){
@@ -31,6 +31,6 @@ export class EmployeeService {
   }
 
   Delete(id:number){
-    return this.http.delete<ResponseApi>(`${this.apiUrl}/${id}}`);
+    return this.http.delete<ResponseApi>(`${this.apiUrl}/${id}`);
   }
 }
