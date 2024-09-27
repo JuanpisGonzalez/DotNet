@@ -1,4 +1,6 @@
 ﻿@model LoginViewModel
+@using Microsoft.AspNetCore.Identity;
+@inject SignInManager<IdentityUser> _signInManager;
 
 @{
     ViewData["Title"] = "User login";
@@ -9,47 +11,62 @@
 <div class="card">
     <div class="card-body">
         <h3 class="card-title text-center">User login</h3>
-        <form asp-controller="Account" asp-action="Login" asp-route-returnUrl="@ViewData["returnUrl"]" method="POST">
-            <div class="text-danger" asp-validation-summary="All"></div>
 
-            <div class="row mt-4">
-                <div class="col-sm-6">
+
+        <div class="row mt-4">
+            <div class="col-sm-6">
+                <form asp-controller="Account" asp-action="Login" asp-route-returnUrl="@ViewData["returnUrl"]" method="POST">
+                    <div class="text-danger" asp-validation-summary="All"></div>
                     <div class="mb-3">
                         <label asp-for="Email" class="col-md-2"></label>
-                        <input asp-for="Email" class="form-control" placeholder="Enter your email" autocomplete="email"/>
+                        <input asp-for="Email" class="form-control" placeholder="Enter your email" autocomplete="email" />
                         <span asp-validation-for="Email" class="text-danger"></span>
                     </div>
                     <div class="mb-3">
                         <label asp-for="Password" class="col-md-2"></label>
-                        <input asp-for="Password" class="form-control" placeholder="Enter your password" autocomplete="current-password"/>
+                        <input asp-for="Password" class="form-control" placeholder="Enter your password" autocomplete="current-password" />
                         <span asp-validation-for="Password" class="text-danger"></span>
                     </div>
                     <div class="mb-3">
                         <div class="custom-check">
                             <label asp-for="RememberMe">
-                                <input asp-for="RememberMe"  />
+                                <input asp-for="RememberMe" />
                                 @Html.DisplayNameFor(m => m.RememberMe);
                             </label>
                         </div>
                     </div>
 
-                </div>
-
-                <div class="col-sm-4 offset-2">
-                    <h3>Here login with other applications</h3>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-sm-6">
-                    <div class="col-md-10">
-                        <button type="submit" class="btn btn-success w-100 btn-lg">Login <i class="bi bi-arrow-right-circle-fill"></i></button>
-                        <p><a asp-action="Register" asp-route-returnUrl="@ViewData["returnUrl"]">Register as a new user</a></p>
-                        <p><a asp-action="ForgotPassword">Forgot password?</a></p>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <button type="submit" class="btn btn-success w-100 btn-lg">Login <i class="bi bi-arrow-right-circle-fill"></i></button>
+                            <p><a asp-action="Register" asp-route-returnUrl="@ViewData["returnUrl"]">Register as a new user</a></p>
+                            <p><a asp-action="ForgotPassword">Forgot password?</a></p>
+                        </div>
                     </div>
-                </div>
+                </form>
             </div>
-        </form>
+
+            @{
+                var schemes = await _signInManager.GetExternalAuthenticationSchemesAsync();
+                var LoginProviders = schemes.ToList();
+            }
+
+            @if(LoginProviders.Count > 0)
+            {
+                <div class="col-sm-4 offset-2">
+                    <h3>Login with other accounts</h3>
+                    <form asp-controller="Account" asp-action="ExternalLogin" asp-route-returnUrl="@ViewData["returnUrl"]" method="POST">
+                        <div class="mt-4">
+                            <p>
+                                @foreach(var provider in LoginProviders){
+                                    <button type="submit" class="btn btn-primary w-100" name="provider" value="@provider.Name" title="Acceda usando su cuenta de @provider.Name">@provider.Name</button>
+                                }
+                            </p>
+                    </div>
+                </form>
+            </div>
+
+            }
     </div>
 </div>
 

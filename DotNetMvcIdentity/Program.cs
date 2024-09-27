@@ -20,8 +20,8 @@ namespace DotNetMvcIdentity
             //add facebook authentication
             builder.Services.AddAuthentication().AddFacebook(options =>
             {
-                options.AppId = builder.Configuration["Facebook:ApiId"];
-                options.AppId = builder.Configuration["Facebook:AppSecret"];
+                options.AppId = builder.Configuration["Facebook:AppId"];
+                options.AppSecret = builder.Configuration["Facebook:AppSecret"];
             });
 
             builder.Services.AddTransient<IEmailSender, EmailSender>();

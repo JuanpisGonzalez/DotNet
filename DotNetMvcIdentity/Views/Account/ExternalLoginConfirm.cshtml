@@ -1,0 +1,44 @@
+﻿@model ExternalLoginConfirmationViewModel
+
+<h2 class="text-info">Register</h2>
+<h3>Associate your account: @ViewData["providerName"]</h3>
+
+<form asp-controller="Account" asp-action="ExternalLoginConfirm" method="post" asp-route-returnUrl="@ViewData["returnUrl"]">
+    <hr />
+    <div class="text-danger" asp-validation-summary="All">
+        <p>
+            You have login successful with <strong>@ViewData["providerName"]</strong>,
+            write your user name for this site next and click in the register button to finish your login
+        </p>
+
+        <div class="form-group">
+            <label asp-for="Email" class="col-md-2"></label>
+            <div class="col-md-10">
+                <input asp-for="Email" class="form-control" placeholder="Enter your email" autocomplete="email" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Name" class="col-md-2"></label>
+            <div class="col-md-10">
+                <input asp-for="Name" class="form-control" placeholder="Enter your name" autocomplete="email" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-2 mt-3">
+                <button type="submit" class="btn btn-primary form-control">Register</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

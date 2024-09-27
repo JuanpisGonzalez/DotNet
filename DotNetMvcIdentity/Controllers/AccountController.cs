@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace DotNetMvcIdentity.Controllers
 {
@@ -220,11 +221,11 @@ namespace DotNetMvcIdentity.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> EmailConfirmation(string userId, string code)
         {
-            if(userId == null || code == null)
+            if (userId == null || code == null)
             {
                 return View("Error");
             }
-            
+
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
@@ -233,7 +234,92 @@ namespace DotNetMvcIdentity.Controllers
 
             var result = await _userManager.ConfirmEmailAsync(user, code);
 
-            return View(result.Succeeded ? "EmailConfirmation": "Error");
+            return View(result.Succeeded ? "EmailConfirmation" : "Error");
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public IActionResult ExternalLogin(string provider, string returnUrl = null)
+        {
+            //Facebook return url
+            var urlRedirection = Url.Action("ExternalLoginCallBack", "Account", new { ReturnUrl = returnUrl });
+            var props = _signInManager.ConfigureExternalAuthenticationProperties(provider, urlRedirection);
+            return Challenge(props, provider);
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> ExternalLoginCallBack(string returnUrl = null, string err = null)
+        {
+            returnUrl = returnUrl ?? Url.Content("~/");
+            if (err != null)
+            {
+                ModelState.AddModelError(string.Empty, $"Error in external login ${err}");
+                return View(nameof(Login));
+            }
+            var info = await _signInManager.GetExternalLoginInfoAsync();
+            if (info == null)
+            {
+                return RedirectToAction(nameof(Login));
+            }
+
+            //Login with external provider
+            var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false);
+            if (result.Succeeded)
+            {
+                //Update access tokens
+                await _signInManager.UpdateExternalAuthenticationTokensAsync(info);
+                return LocalRedirect(returnUrl);
+            }
+            else
+            {
+                //if user don´t have accoun, we'll ask if he want to create one
+                ViewData["returnUrl"] = returnUrl;
+                ViewData["providerName"] = info.ProviderDisplayName;
+                var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+                var name = info.Principal.FindFirstValue(ClaimTypes.Name);
+                return View("ExternalLoginConfirm", new ExternalLoginConfirmationViewModel
+                {
+                    Email = email,
+                    Name = name
+                });
+            }
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ExternalLoginConfirm(ExternalLoginConfirmationViewModel elcViewModel, string returnUrl = null)
+        {
+            returnUrl = returnUrl ?? Url.Content("~/");
+            if (ModelState.IsValid)
+            {
+                //get info from external provider
+                var info = await _signInManager.GetExternalLoginInfoAsync();
+                if (info == null)
+                {
+                    return View("Error");
+                }
+
+                var user = new AppUser { UserName = elcViewModel.Email, Email = elcViewModel.Email, Name = elcViewModel.Name };
+                var result = await _userManager.CreateAsync(user);
+
+                if (result.Succeeded)
+                {
+                    result = await _userManager.AddLoginAsync(user, info);
+
+                    if (result.Succeeded) { 
+                        await _signInManager.SignInAsync(user, isPersistent: false);
+                        await _signInManager.UpdateExternalAuthenticationTokensAsync(info);
+                        return LocalRedirect(returnUrl);
+                    }
+                }
+
+                ValidateErrors(result);
+            }
+            ViewData["returnUrl"] = returnUrl;
+            return View(elcViewModel);
         }
     }
 }
