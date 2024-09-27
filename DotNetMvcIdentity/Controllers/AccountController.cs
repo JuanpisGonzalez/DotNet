@@ -25,6 +25,7 @@ namespace DotNetMvcIdentity.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> Register(string returnUrl = null)
         {
             ViewData["returnUrl"] = returnUrl;
@@ -60,7 +61,15 @@ namespace DotNetMvcIdentity.Controllers
 
                 if (result.Succeeded)
                 {
+                    //email confirmation
+                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                    var returnUrlEmailConfirmation = Url.Action("EmailConfirmation", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
+
+                    await _emailSender.SendEmailAsync(rgViewModel.Email, "Activate account - Identity project", $"Please activate your account: {returnUrlEmailConfirmation}");
+
+
                     await _signInManager.SignInAsync(user, isPersistent: false);
+
 
                     //return RedirectToAction("Index", "Home");//method, controller
                     //return Redirect(returnUrl); Avoid open redirect attacks
@@ -82,6 +91,7 @@ namespace DotNetMvcIdentity.Controllers
 
         //Show login form
         [HttpGet]
+        [AllowAnonymous]
         public IActionResult Login(string returnUrl = null)
         {
             ViewData["returnUrl"] = returnUrl;
@@ -135,6 +145,7 @@ namespace DotNetMvcIdentity.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public IActionResult ForgotPassword()
         {
             return View();
@@ -147,12 +158,13 @@ namespace DotNetMvcIdentity.Controllers
             if (ModelState.IsValid)
             {
                 var user = await _userManager.FindByEmailAsync(fpViewModel.Email);
-                if (user == null) {
+                if (user == null)
+                {
                     return RedirectToAction("ForgotPasswordConfirm");
                 }
 
                 var code = await _userManager.GeneratePasswordResetTokenAsync(user);
-                var returnUrl = Url.Action("ResetPassword", "Account", new {userId = user.Id, code }, protocol: HttpContext.Request.Scheme);
+                var returnUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code }, protocol: HttpContext.Request.Scheme);
 
                 await _emailSender.SendEmailAsync(fpViewModel.Email, "Password recovery - Identity project", $"Please recover your password clicking here: {returnUrl}");
                 return RedirectToAction("ForgotPasswordConfirm");
@@ -188,7 +200,8 @@ namespace DotNetMvcIdentity.Controllers
 
                 var result = await _userManager.ResetPasswordAsync(user, prViewModel.Code, prViewModel.ConfirmPassword);
 
-                if (result.Succeeded) {
+                if (result.Succeeded)
+                {
                     return RedirectToAction("RecoverPasswordConfirm");
                 }
                 ValidateErrors(result);
@@ -203,5 +216,24 @@ namespace DotNetMvcIdentity.Controllers
             return View();
         }
 
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> EmailConfirmation(string userId, string code)
+        {
+            if(userId == null || code == null)
+            {
+                return View("Error");
+            }
+            
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return View("Error");
+            }
+
+            var result = await _userManager.ConfirmEmailAsync(user, code);
+
+            return View(result.Succeeded ? "EmailConfirmation": "Error");
+        }
     }
 }

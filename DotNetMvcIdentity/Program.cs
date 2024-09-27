@@ -17,6 +17,13 @@ namespace DotNetMvcIdentity
             options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServerConnection")
             ));
 
+            //add facebook authentication
+            builder.Services.AddAuthentication().AddFacebook(options =>
+            {
+                options.AppId = builder.Configuration["Facebook:ApiId"];
+                options.AppId = builder.Configuration["Facebook:AppSecret"];
+            });
+
             builder.Services.AddTransient<IEmailSender, EmailSender>();
             //Add identity
             builder.Services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
