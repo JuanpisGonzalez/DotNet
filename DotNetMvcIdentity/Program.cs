@@ -24,6 +24,12 @@ namespace DotNetMvcIdentity
                 options.AppSecret = builder.Configuration["Facebook:AppSecret"];
             });
 
+            builder.Services.AddAuthentication().AddGoogle(options =>
+            {
+                options.ClientId = builder.Configuration["Google:AppId"];
+                options.ClientSecret = builder.Configuration["Google:AppSecret"];
+            });
+
             builder.Services.AddTransient<IEmailSender, EmailSender>();
             //Add identity
             builder.Services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
