@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Text.Encodings.Web;
 
 namespace DotNetMvcIdentity.Controllers
 {
@@ -13,12 +14,14 @@ namespace DotNetMvcIdentity.Controllers
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly IEmailSender _emailSender;
+        public readonly UrlEncoder _urlEncoder;
 
-        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IEmailSender emailSender)
+        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IEmailSender emailSender, UrlEncoder urlEncoder)
         {
             _emailSender = emailSender;
             _userManager = userManager;
             _signInManager = signInManager;
+            _urlEncoder = urlEncoder;
         }
         public IActionResult Index()
         {
@@ -126,6 +129,10 @@ namespace DotNetMvcIdentity.Controllers
                         //return RedirectToAction("Index", "Home");//method, controller
                         return View("Blocked");
                     }
+                }
+                if (result.RequiresTwoFactor)
+                {
+                    return RedirectToAction("VerifyAuthenticatorCode", new { returnUrl, lgViewModel.RememberMe });
                 }
                 else
                 {
@@ -272,6 +279,11 @@ namespace DotNetMvcIdentity.Controllers
                 await _signInManager.UpdateExternalAuthenticationTokensAsync(info);
                 return LocalRedirect(returnUrl);
             }
+            //for two factor authentication
+            if (result.RequiresTwoFactor)
+            {
+                return RedirectToAction("VerifyAuthenticatorCode", new { returnUrl });
+            }
             else
             {
                 //if user don´t have accoun, we'll ask if he want to create one
@@ -309,7 +321,8 @@ namespace DotNetMvcIdentity.Controllers
                 {
                     result = await _userManager.AddLoginAsync(user, info);
 
-                    if (result.Succeeded) { 
+                    if (result.Succeeded)
+                    {
                         await _signInManager.SignInAsync(user, isPersistent: false);
                         await _signInManager.UpdateExternalAuthenticationTokensAsync(info);
                         return LocalRedirect(returnUrl);
@@ -320,6 +333,131 @@ namespace DotNetMvcIdentity.Controllers
             }
             ViewData["returnUrl"] = returnUrl;
             return View(elcViewModel);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ActivateAuthenticator()
+        {
+            string urlFormatAuthenticator = "otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6";
+
+            var user = await _userManager.GetUserAsync(User);
+            await _userManager.ResetAuthenticatorKeyAsync(user);
+
+            var token = await _userManager.GetAuthenticatorKeyAsync(user);
+
+            //enable qr code
+            string urlAuthenticator = string.Format(urlFormatAuthenticator,
+                _urlEncoder.Encode("DotNetMvcIdentity"),
+                _urlEncoder.Encode(user.Email),
+                token);
+
+
+            var twoFactorAuthenticationModel = new TwoFactoAuthenticationViewModel()
+            {
+                Token = token,
+                urlQrCode = urlAuthenticator
+            };
+            return View(twoFactorAuthenticationModel);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ActivateAuthenticator(TwoFactoAuthenticationViewModel twoFactorAuthenticatorModel)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.GetUserAsync(User);
+                var successful = await _userManager.VerifyTwoFactorTokenAsync(user,
+                    _userManager.Options.Tokens.AuthenticatorTokenProvider, twoFactorAuthenticatorModel.Code);
+
+                if (successful)
+                {
+                    await _userManager.SetTwoFactorEnabledAsync(user, true);
+                }
+                else
+                {
+                    //new token
+                    await _userManager.ResetAuthenticatorKeyAsync(user);
+                    var newToken = await _userManager.GetAuthenticatorKeyAsync(user);
+
+                    string urlFormatAuthenticator = "otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6";
+
+
+                    //enable qr code
+                    string urlAuthenticator = string.Format(urlFormatAuthenticator,
+                        _urlEncoder.Encode("DotNetMvcIdentity"),
+                        _urlEncoder.Encode(user.Email),
+                        newToken);
+
+                    ModelState.AddModelError("Error", $"Your two factor authenticatión hasn´t validated");
+                    twoFactorAuthenticatorModel.urlQrCode = urlAuthenticator;
+                    twoFactorAuthenticatorModel.Token = newToken;
+                    return View(twoFactorAuthenticatorModel);
+                }
+            }
+            return RedirectToAction(nameof(AuthenticatorConfirmation));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> DeleteAuthenticator()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            await _userManager.ResetAuthenticatorKeyAsync(user);
+
+            await _userManager.SetTwoFactorEnabledAsync(user, false);
+            return RedirectToAction(nameof(Index), "Home");
+        }
+
+        [HttpGet]
+        public IActionResult AuthenticatorConfirmation()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> VerifyAuthenticatorCode(bool rememberData, string returnUrl = null)
+        {
+            returnUrl = returnUrl ?? Url.Content("~/");
+            var user = _signInManager.GetTwoFactorAuthenticationUserAsync();
+            if (user == null)
+            {
+                return View("Error");
+            }
+            else
+            {
+                ViewData["returnUrl"] = returnUrl;
+                return View(new VerifyAuthenticatorViewModel
+                {
+                    ReturnUrl = returnUrl,
+                    RememberData = rememberData,
+
+                });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [AllowAnonymous]
+        public async Task<IActionResult> VerifyAuthenticatorCode(VerifyAuthenticatorViewModel vaViewModel)
+        {
+            vaViewModel.ReturnUrl = vaViewModel.ReturnUrl ?? Url.Content("~/");
+            if (!ModelState.IsValid)
+            {
+                return View(vaViewModel);
+            }
+
+            var result = await _signInManager.TwoFactorAuthenticatorSignInAsync(vaViewModel.Code, vaViewModel.RememberData, rememberClient: false);
+            if (result.Succeeded)
+            {
+                return LocalRedirect(vaViewModel.ReturnUrl);
+            }
+            if (result.IsLockedOut) {
+                return View("Blocked");
+            }
+            else
+            {
+                ModelState.AddModelError(string.Empty, "Invalid code");
+                return View(vaViewModel);
+            }
         }
     }
 }

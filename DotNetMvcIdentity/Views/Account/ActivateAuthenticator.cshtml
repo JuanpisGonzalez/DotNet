@@ -1,0 +1,37 @@
+﻿@model TwoFactoAuthenticationViewModel
+<p><strong>Please enter the code below into your app authenticator</strong></p><p>@Model.Token</p>
+<p>Or use a qr code:</p>
+<div id="qrCode"></div>
+
+<form method="post">
+    <input type="hidden" asp-for="Token" />
+    <input type="hidden" asp-for="urlQrCode" />
+    <hr />
+    <div class="row">
+        <div class="col-sm-7">
+            <div class="text-danger" asp-validation-summary="All"></div>
+            <div class="col-md-12">
+                <label asp-for="Code"></label>
+                <input type="text" asp-for="Code" class="form-control" placeholder="Enter your authenticator code" />
+                <span asp-validation-for="Code" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="col-sm-5">
+            <div class="col-sm-5">
+                <div class="col-md-12 pt-4">
+                    <button type="submit" class="btn btn-primary mt-3"><i class="bi bi-arrow-right-circle-fill"></i>Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/js/qrcode.js"></script>
+    <script type="text/javascript">
+        new QRCode(document.getElementById("qrCode"), "@Model.urlQrCode");
+    </script>
+}
