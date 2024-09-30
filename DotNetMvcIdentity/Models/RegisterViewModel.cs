@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.DataAnnotations;
 
 namespace DotNetMvcIdentity.Models
 {
@@ -35,5 +36,12 @@ namespace DotNetMvcIdentity.Models
 
         [Required(ErrorMessage = "State is required")]
         public bool State { get; set; }
+
+        //To role selection
+        [Display(Name="Select role")]
+        public IEnumerable<SelectListItem>? RolesList { get; set; }
+
+        [Display(Name = "Select role")]
+        public string? SelectedRole { get; set; }
     }
 }

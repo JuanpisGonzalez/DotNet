@@ -28,14 +28,14 @@ namespace DotNetMvcIdentity.Controllers
             {
                 ViewData["2factorAutheticationActive"] = user.TwoFactorEnabled;
             }*/
-            if(user != null)
+            if (user != null)
             {
                 ViewData["twofactorAuthenticationActive"] = user.TwoFactorEnabled;
             }
             return View();
         }
 
-        [Authorize]
+        [Authorize(Roles = "Administrator")]
         public IActionResult Privacy()
         {
             return View();
@@ -46,5 +46,6 @@ namespace DotNetMvcIdentity.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+
     }
 }

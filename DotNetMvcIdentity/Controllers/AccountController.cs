@@ -4,25 +4,36 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 
 namespace DotNetMvcIdentity.Controllers
 {
+    [Authorize]
     public class AccountController : Controller
     {
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;//For roles
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly IEmailSender _emailSender;
         public readonly UrlEncoder _urlEncoder;
 
-        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IEmailSender emailSender, UrlEncoder urlEncoder)
+        public AccountController(UserManager<IdentityUser> userManager, 
+            SignInManager<IdentityUser> signInManager,
+            IEmailSender emailSender, 
+            UrlEncoder urlEncoder,
+            RoleManager<IdentityRole> roleManager)
         {
             _emailSender = emailSender;
             _userManager = userManager;
             _signInManager = signInManager;
             _urlEncoder = urlEncoder;
+            _roleManager = roleManager;
         }
+
+        [HttpGet]
+        [AllowAnonymous]
         public IActionResult Index()
         {
             return View();
@@ -32,14 +43,68 @@ namespace DotNetMvcIdentity.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Register(string returnUrl = null)
         {
+            //Create roles
+            if(!await _roleManager.RoleExistsAsync("Administrator"))
+            {
+                //Create role
+                await _roleManager.CreateAsync(new IdentityRole("Administrator"));
+            }
+
+            if (!await _roleManager.RoleExistsAsync("Registered"))
+            {
+                //Create role
+                await _roleManager.CreateAsync(new IdentityRole("Registered"));
+            }
+
+
             ViewData["returnUrl"] = returnUrl;
             RegisterViewModel registerVM = new RegisterViewModel();//Create a new object view
 
             return View(registerVM);//Return the view to be showed in the browser
         }
 
+        //Register just for admins
+        [HttpGet]
+        public async Task<IActionResult> RegisterCustomForAdmins(string returnUrl = null)
+        {
+            //Create roles
+            if (!await _roleManager.RoleExistsAsync("Administrator"))
+            {
+                //Create role
+                await _roleManager.CreateAsync(new IdentityRole("Administrator"));
+            }
+
+            if (!await _roleManager.RoleExistsAsync("Registered"))
+            {
+                //Create role
+                await _roleManager.CreateAsync(new IdentityRole("Registered"));
+            }
+
+            //To role selection
+            List<SelectListItem> rolesList = new List<SelectListItem>();
+            rolesList.Add(new SelectListItem()
+            {
+                Value = "Administrator",
+                Text = "Administrator"
+            });
+            rolesList.Add(new SelectListItem()
+            {
+                Value = "Registered",
+                Text = "Registered"
+            });
+
+            ViewData["returnUrl"] = returnUrl;
+            RegisterViewModel registerVM = new RegisterViewModel()
+            {
+                RolesList = rolesList
+            };//Create a new object view
+
+            return View(registerVM);//Return the view to be showed in the browser
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [AllowAnonymous]
         public async Task<IActionResult> Register(RegisterViewModel rgViewModel, string returnUrl = null)
         {
             ViewData["returnUrl"] = returnUrl;
@@ -65,6 +130,8 @@ namespace DotNetMvcIdentity.Controllers
 
                 if (result.Succeeded)
                 {
+                    await _userManager.AddToRoleAsync(user, "Registered");
+
                     //email confirmation
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                     var returnUrlEmailConfirmation = Url.Action("EmailConfirmation", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
@@ -85,6 +152,80 @@ namespace DotNetMvcIdentity.Controllers
             return View(rgViewModel);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RegisterCustomForAdmins(RegisterViewModel rgViewModel, string returnUrl = null)
+        {
+            ViewData["returnUrl"] = returnUrl;
+            returnUrl = returnUrl ?? Url.Content("~/");
+            if (ModelState.IsValid)
+            {
+                var user = new AppUser()
+                {
+                    UserName = rgViewModel.Email,
+                    Email = rgViewModel.Email,
+                    Name = rgViewModel.Name,
+                    Url = rgViewModel.Url,
+                    CountryCode = rgViewModel.CountryCode,
+                    Phone = rgViewModel.Phone,
+                    Country = rgViewModel.Country,
+                    City = rgViewModel.City,
+                    Address = rgViewModel.Address,
+                    Birthdate = rgViewModel.Birthdate,
+                    State = rgViewModel.State
+                };
+
+                var result = await _userManager.CreateAsync(user, rgViewModel.Password);
+
+                if (result.Succeeded)
+                {
+                    if(rgViewModel.SelectedRole != null &&
+                        rgViewModel.SelectedRole.Length > 0 &&
+                        rgViewModel.SelectedRole.Equals("Administrator"))
+                    {
+                        await _userManager.AddToRoleAsync(user, "Administrator");
+                    }
+                    else
+                    {
+                        await _userManager.AddToRoleAsync(user, "Registered");
+                    }
+                    await _userManager.AddToRoleAsync(user, "Registered");
+
+                    //email confirmation
+                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                    var returnUrlEmailConfirmation = Url.Action("EmailConfirmation", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
+
+                    await _emailSender.SendEmailAsync(rgViewModel.Email, "Activate account - Identity project", $"Please activate your account: {returnUrlEmailConfirmation}");
+
+
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+
+
+                    //return RedirectToAction("Index", "Home");//method, controller
+                    //return Redirect(returnUrl); Avoid open redirect attacks
+                    return LocalRedirect(returnUrl);
+                }
+                ValidateErrors(result);
+            }
+
+            List<SelectListItem> rolesList = new List<SelectListItem>();
+            rolesList.Add(new SelectListItem()
+            {
+                Value = "Administrator",
+                Text = "Administrator"
+            });
+            rolesList.Add(new SelectListItem()
+            {
+                Value = "Registered",
+                Text = "Registered"
+            });
+
+            rgViewModel.RolesList = rolesList;
+
+            return View(rgViewModel);
+        }
+
+        [AllowAnonymous]
         private void ValidateErrors(IdentityResult result)
         {
             foreach (var error in result.Errors)
@@ -104,6 +245,7 @@ namespace DotNetMvcIdentity.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [AllowAnonymous]
         public async Task<IActionResult> Login(LoginViewModel lgViewModel, string returnUrl = null)
         {
             ViewData["returnUrl"] = returnUrl;
@@ -161,6 +303,7 @@ namespace DotNetMvcIdentity.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]//avid xss atacks
+        [AllowAnonymous]
         public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel fpViewModel)
         {
             if (ModelState.IsValid)
@@ -189,6 +332,7 @@ namespace DotNetMvcIdentity.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public IActionResult ResetPassword(string code = null)
         {
             return code == null ? View("Error") : View();
@@ -196,6 +340,7 @@ namespace DotNetMvcIdentity.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [AllowAnonymous]
         public async Task<IActionResult> ResetPassword(PasswordRecoverViewModel prViewModel)
         {
             if (ModelState.IsValid)
@@ -219,6 +364,7 @@ namespace DotNetMvcIdentity.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public IActionResult RecoverPasswordConfirm()
         {
             return View();
@@ -414,6 +560,7 @@ namespace DotNetMvcIdentity.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> VerifyAuthenticatorCode(bool rememberData, string returnUrl = null)
         {
             returnUrl = returnUrl ?? Url.Content("~/");
@@ -458,6 +605,16 @@ namespace DotNetMvcIdentity.Controllers
                 ModelState.AddModelError(string.Empty, "Invalid code");
                 return View(vaViewModel);
             }
+        }
+
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult AccessDenied(string returnUrl = null)
+        {
+            returnUrl = returnUrl ?? Url.Content("~/");
+            ViewData["returnUrl"] = returnUrl;
+            return View();
         }
     }
 }
