@@ -11,13 +11,30 @@
             <li class="nav-item">
                 <a class="nav-link text-white" asp-area="" asp-controller="Account" asp-action="RegisterCustomForAdmins"><strong>Your roles is Administrator >> Register admin</strong></a>
             </li>
-        }else
-            {
-               <p>Your roles is Registered</p>
-            }
-            <li class="nav-item">
-            <a class="nav-link text-white" href="">Hola, @UserManager.GetUserName(User)</a>
+        }
+        else
+        {
+            <p>Your roles is Registered</p>
+        }
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                My account
+            </a>
+            <ul class="dropdown-menu">
+                <li class="nav-item">
+                    <a class="nav-link text-dark" href="">Hola, @UserManager.GetUserName(User)</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="UpdateProfile" asp-route-id="@UserManager.GetUserId(User)">Update profile</a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li class="nav-item">
+                    <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="ChangePassword">Update password</a>
+                </li>
+            </ul>
         </li>
+
+
         <li class="nav-item">
             <form id="logoutForm" method="POST" class="form-inline" asp-controller="Account" asp-action="Logout">
                 <button type="submit" class="btn nav-link">Logout</button>
@@ -26,7 +43,7 @@
     }
     else
     {
-        
+
         <li class="nav-item">
             <a class="nav-link text-white" asp-area="" asp-controller="Account" asp-action="Register">Register</a>
         </li>

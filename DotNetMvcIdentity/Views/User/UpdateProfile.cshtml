@@ -1,0 +1,74 @@
+﻿@model AppUser
+
+@{
+    ViewData["Title"] = "Update profile";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="card">
+    <div class="card-body">
+        <h3 class="card-title text-center">Update user profile</h3>
+        <form asp-controller="User" asp-action="UpdateProfile" asp-route-returnUrl="@ViewData["returnUrl"]" method="POST">
+            <div class="text-danger" asp-validation-summary="All"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="row mt-4">
+                <div class="col-sm-6">
+                    <div class="mb-3">
+                        <label asp-for="Name" class="col-md-2"></label>
+                        <input asp-for="Name" class="form-control" placeholder="Enter your name" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+
+                        <label asp-for="Email" class="col-md-2"></label>
+                        <input asp-for="Email" class="form-control" placeholder="Enter your email" disabled/>
+                        <span asp-validation-for="Email" class="text-danger"></span>
+
+                        <label asp-for="Url" class="col-md-2"></label>
+                        <input asp-for="Url" class="form-control" placeholder="Enter your url" />
+                        <span asp-validation-for="Url" class="text-danger"></span>
+
+                        <label asp-for="CountryCode" class="col-md-2"></label>
+                        <input asp-for="CountryCode" class="form-control" placeholder="Enter your country code" />
+                        <span asp-validation-for="CountryCode" class="text-danger"></span>
+
+                        <label asp-for="Phone" class="col-md-2"></label>
+                        <input asp-for="Phone" class="form-control" placeholder="Enter your phone" />
+                        <span asp-validation-for="Phone" class="text-danger"></span>
+
+                        <label asp-for="Country" class="col-md-2"></label>
+                        <input asp-for="Country" class="form-control" placeholder="Enter your country" />
+                        <span asp-validation-for="Country" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-sm-6">
+                    <div class="mb-3">
+                        <label asp-for="City" class="col-md-2"></label>
+                        <input asp-for="City" class="form-control" placeholder="Enter your city" />
+                        <span asp-validation-for="City" class="text-danger"></span>
+
+                        <label asp-for="Address" class="col-md-2"></label>
+                        <input asp-for="Address" class="form-control" placeholder="Enter your address" />
+                        <span asp-validation-for="Address" class="text-danger"></span>
+
+                        <label for="datePicker" asp-for="Birthdate" class="col-md-2"></label>
+                        <input type="text" asp-for="Birthdate" class="form-control" id="datePicker" placeholder="1990-10-05" />
+                        <span asp-validation-for="Birthdate" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-10 offset-2">
+                    <div class="col-md-10">
+                        <button type="submit" class="btn btn-success w-75 btn-lg">Update<i class="bi bi-arrow-righht-circle-fill"></i></button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
