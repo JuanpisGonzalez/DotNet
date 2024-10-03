@@ -1,24 +1,24 @@
-﻿@using Microsoft.AspNetCore.Identity
-@model IEnumerable<IdentityRole>
-
+﻿@model IEnumerable<AppUser>
 @{
-    ViewData["Title"] = "Role administration";
+    ViewData["Title"] = "User administration";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>Roles administration</h1>
-@if(TempData["Successful"] != null){
+<h1 class="text-center">User administration</h1>
+@if (TempData["Successful"] != null)
+{
     <div class="alert alert-success alert-dismissible fade show" role="alert">
         <p>@TempData["Successful"]</p>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
-}else if(TempData["Error"] != null)
+}
+else if (TempData["Error"] != null)
 {
     <div class="alert alert-danger alert-dismissible fade show" role="alert">
         <p>@TempData["Error"]</p>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
-
 <div class="row">
     <div class="col-sm-2 offset-10 mb-3">
         <a asp-action="Create" asp-controller="Role" class="btn btn-primary w-100">Create new</a>
@@ -29,34 +29,50 @@
     <div class="col-sm-12">
         <div class="card-border">
             <div class="card-header">
-                <h3><strong>Role list</strong></h3>
+                <h3><strong>User list</strong></h3>
             </div>
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                @if(Model.Count() > 0)
+                @if (Model.Count() > 0)
                 {
                     <table class="d-lg-table table-bordered" id="rolesTable" width="100%" cellspacing="0">
                         <thead>
                             <tr>
-                                <th>Id</th>
-                                <th>Name</th>
+                                <th>@Html.DisplayNameFor(m => m.Name)</th>
+                                <th>@Html.DisplayNameFor(m => m.Email)</th>
+                                <th>@Html.DisplayNameFor(m => m.Phone)</th>
+                                <th>@Html.DisplayNameFor(m => m.Role)</th>
                                 <th>Actions</th>
-                            </tr>                          
+                            </tr>
                         </thead>
                         <tbody>
-                            @foreach(var item in Model)
+                            @foreach (var item in Model)
                             {
                                 <tr>
-                                    <th>@Html.DisplayFor(m => item.Id)</th>
                                     <th>@Html.DisplayFor(m => item.Name)</th>
+                                    <th>@Html.DisplayFor(m => item.Email)</th>
+                                    <th>@Html.DisplayFor(m => item.Phone)</th>
+                                    <th>@Html.DisplayFor(m => item.Role)</th>
                                     <th>
                                         <div class="row">
                                             <div class="col-3" style="padding-right:0;">
-                                                <a class="btn btn-sm btn-primary w-100" asp-controller="Role" asp-action="Update" asp-route-id="@item.Id">Update</a>
+                                                <a class="btn btn-sm btn-primary w-100" asp-controller="User" asp-action="UpdateUser" asp-route-id="@item.Id">Update</a>
+                                            </div>
+                                            <div class="col-3" style="padding-right:0;">
+                                                <form method="post" asp-controller="User" asp-action="BlockUnblockUser" asp-route-id="@item.Id">
+                                                    @if (item.LockoutEnd == null || item.LockoutEnd > DateTime.Now)
+                                                    {
+                                                        <button type="submit" class="btn btn-sm btn-success w-100">Unblock</button>
+                                                    }
+                                                    else
+                                                    {
+                                                        <button class="btn btn-sm btn-warning w-100" type="submit">Block</button>
+                                                    }
+                                                </form>
                                             </div>
                                             <div class="col-3">
-                                                <form asp-action="Delete" asp-controller="Role" asp-route-id="@item.Id" method="post">
+                                                <form asp-action="Delete" asp-controller="User" asp-route-id="@item.Id" method="post">
                                                     <button type="submit" onclick="return confirm('Are you sure to delete this record?')" class="btn btn-sm btn-danger w-100">Delete</button>
                                                 </form>
                                             </div>
@@ -85,5 +101,5 @@
         $(document).ready(function () {
             $('#rolesTable').DataTable();
         });
-        </script>
+    </script>
 }
