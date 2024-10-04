@@ -1,9 +1,11 @@
-﻿using DotNetMvcIdentity.Data;
+﻿using DotNetMvcIdentity.Claims;
+using DotNetMvcIdentity.Data;
 using DotNetMvcIdentity.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace DotNetMvcIdentity.Controllers
 {
@@ -55,7 +57,7 @@ namespace DotNetMvcIdentity.Controllers
             var roles = _context.Roles.ToList();
             var role = userRol.FirstOrDefault(u => u.UserId == userDb.Id);
 
-            if(role != null)
+            if (role != null)
             {
                 userDb.IdRol = roles.FirstOrDefault(u => u.Id == role.RoleId).Id;
             }
@@ -74,7 +76,7 @@ namespace DotNetMvcIdentity.Controllers
             if (ModelState.IsValid)
             {
                 var userDb = _context.AppUsers.FirstOrDefault(u => u.Id == user.Id);
-                if(userDb == null)
+                if (userDb == null)
                 {
                     return NotFound();
                 }
@@ -90,7 +92,7 @@ namespace DotNetMvcIdentity.Controllers
                 //Add user to a new role
                 await _userManager.AddToRoleAsync(userDb, _context.Roles.FirstOrDefault(u => u.Id == user.IdRol).Name);
                 _context.SaveChanges();
-                return RedirectToAction(nameof(Index));    
+                return RedirectToAction(nameof(Index));
             }
 
             user.Roles = _context.Roles.Select(u => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
@@ -107,12 +109,12 @@ namespace DotNetMvcIdentity.Controllers
         public IActionResult BlockUnblockUser(string id)
         {
             var userDb = _context.AppUsers.FirstOrDefault(u => u.Id == id);
-            if(userDb == null)
+            if (userDb == null)
             {
                 return NotFound();
             }
 
-            if(userDb.LockoutEnd != null && userDb.LockoutEnd > DateTime.Now)
+            if (userDb.LockoutEnd != null && userDb.LockoutEnd > DateTime.Now)
             {
                 TempData["Successful"] = "The user has been unlocked";
                 //is block
@@ -231,6 +233,66 @@ namespace DotNetMvcIdentity.Controllers
         public IActionResult ChangePasswordConfirmation()
         {
             return View();
+        }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> AdminUserClaims(string id)
+        {
+            IdentityUser user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            var currentUserClaim = await _userManager.GetClaimsAsync(user);
+            var model = new ClaimsUserViewModel()
+            {
+                IdUser = id
+            };
+
+            foreach (Claim item in ClaimsManager.Claims)
+            {
+                ClaimsUserViewModel.UserClaim userClaim = new ClaimsUserViewModel.UserClaim()
+                {
+                    ClaimType = item.Type,
+                };
+
+                if (currentUserClaim.Any(c => c.Type == item.Type))
+                {
+                    userClaim.Selected = true;
+                }
+                model.Claims.Add(userClaim);
+            }
+            return View(model);
+        }
+
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> AdminUserClaims(ClaimsUserViewModel cuViewModel)
+        {
+            IdentityUser user = await _userManager.FindByIdAsync(cuViewModel.IdUser);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            var claims = await _userManager.GetClaimsAsync(user);
+
+            var result = await _userManager.RemoveClaimsAsync(user, claims);
+
+            if (!result.Succeeded)
+            {
+                return View(cuViewModel);
+            }
+
+            result = await _userManager.AddClaimsAsync(user, cuViewModel.Claims.Where(c => c.Selected)
+                .Select(c => new Claim(c.ClaimType, c.Selected.ToString())));
+
+            if (!result.Succeeded)
+            {
+                return View(cuViewModel);
+            }
+
+            return RedirectToAction(nameof(Index));
         }
     }
 }

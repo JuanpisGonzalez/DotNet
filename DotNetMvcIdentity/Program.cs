@@ -30,6 +30,20 @@ namespace DotNetMvcIdentity
                 options.ClientSecret = builder.Configuration["Google:AppSecret"];
             });
 
+            //Directives authorization support POLICY
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy("Administrator", policy => policy.RequireRole("Administrator"));
+                options.AddPolicy("Registered", policy => policy.RequireRole("Registered"));
+                options.AddPolicy("User", policy => policy.RequireRole("User"));
+                options.AddPolicy("UserAndAdmin", policy => policy.RequireRole("User").RequireRole("Administrator"));
+
+                //Claims Permissions
+                options.AddPolicy("AdminCreatePermission", policy => policy.RequireRole("Administrator").RequireClaim("Create", "True"));
+                options.AddPolicy("AdminDeleteUpdatePermission", policy => policy.RequireRole("Administrator").RequireClaim("Update", "True").RequireClaim("Delete", "True"));
+                options.AddPolicy("AdminCreateUpdateDeletePermission", policy => policy.RequireRole("Administrator").RequireClaim("Create","True").RequireClaim("Update", "True").RequireClaim("Delete", "True"));
+            });
+
             builder.Services.AddTransient<IEmailSender, EmailSender>();
             //Add identity
             builder.Services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
