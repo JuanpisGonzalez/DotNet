@@ -1,10 +1,11 @@
 ﻿using ApiMovies.Data;
 using ApiMovies.Models;
 using ApiMovies.Repositories.IRepositories;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ApiMovies.Repositories
 {
-    public class CategoryRepository: ICategoryRepository
+    public class CategoryRepository : ICategoryRepository
     {
         private readonly ApplicationDbContext _context;
         public CategoryRepository(ApplicationDbContext context)
@@ -12,7 +13,7 @@ namespace ApiMovies.Repositories
             _context = context;
         }
 
-        public bool CreateCategroy(Category category)
+        public bool CreateCategory(Category category)
         {
             category.CreatedDate = DateTime.Now;
             _context.Categories.Add(category);
@@ -48,13 +49,24 @@ namespace ApiMovies.Repositories
 
         public bool Save()
         {
-            return _context.SaveChanges() >= 0 ? true : false;
+            return _context.SaveChanges() > 0 ? true : false;
         }
 
         public bool UpdateCategory(Category category)
         {
             category.CreatedDate = DateTime.Now;
-            _context.Categories.Update(category);
+
+            var categoryExist = _context.Categories.Find(category.Id);
+            if (categoryExist != null)
+            {
+                _context.Entry(categoryExist).CurrentValues.SetValues(category);//Update category that is being tracking
+
+            }
+            else
+            {
+                _context.Categories.Update(category);
+            }
+
             return Save();
         }
     }

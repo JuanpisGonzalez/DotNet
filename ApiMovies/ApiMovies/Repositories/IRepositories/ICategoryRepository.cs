@@ -9,7 +9,7 @@ namespace ApiMovies.Repositories.IRepositories
         Category GetCategory(int id);
         bool ExistCategory(int id);
         bool ExistCategory(string name);
-        bool CreateCategroy (Category category);
+        bool CreateCategory (Category category);
         bool UpdateCategory(Category category);
         bool DeleteCategory(Category category);
         bool Save();
