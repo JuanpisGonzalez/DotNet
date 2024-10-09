@@ -4,11 +4,11 @@ using ApiMovies.Repositories.IRepositories;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ApiMovies.Controllers.Movies
+namespace ApiMovies.Controllers.ForCategories
 {
     [Route("api/[Controller]")]
     [ApiController]
-    public class UpdatePatchCategory: Categories
+    public class UpdatePatchCategory : Categories
     {
         public UpdatePatchCategory(ICategoryRepository categoryRepository, IMapper mapper) : base(categoryRepository, mapper) { }
 

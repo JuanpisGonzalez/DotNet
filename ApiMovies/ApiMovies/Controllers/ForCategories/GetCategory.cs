@@ -3,15 +3,15 @@ using ApiMovies.Repositories.IRepositories;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ApiMovies.Controllers.Movies
+namespace ApiMovies.Controllers.ForCategories
 {
     [Route("api/[Controller]")]
     [ApiController]
-    public class GetCategory: Categories
+    public class GetCategory : Categories
     {
         public GetCategory(ICategoryRepository categoryRepository, IMapper mapper) : base(categoryRepository, mapper) { }
 
-        [HttpGet("{id:int}", Name="GetCategory")]
+        [HttpGet("{id:int}", Name = "GetCategory")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -20,7 +20,8 @@ namespace ApiMovies.Controllers.Movies
         {
             var category = _categoryRepository.GetCategory(id);
 
-            if (category == null) {
+            if (category == null)
+            {
                 return NotFound();
             }
 

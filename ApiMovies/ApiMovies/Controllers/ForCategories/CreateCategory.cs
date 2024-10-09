@@ -4,7 +4,7 @@ using ApiMovies.Repositories.IRepositories;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ApiMovies.Controllers.Movies
+namespace ApiMovies.Controllers.ForCategories
 {
     [Route("api/[Controller]")]
     [ApiController]
@@ -42,7 +42,7 @@ namespace ApiMovies.Controllers.Movies
                 return StatusCode(404, ModelState);
             }
 
-            return CreatedAtRoute("GetCategory", new {Id = category.Id}, category);
+            return CreatedAtRoute("GetCategory", new { category.Id }, category);
         }
     }
 }

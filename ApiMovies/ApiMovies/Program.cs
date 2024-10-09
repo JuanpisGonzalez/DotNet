@@ -20,6 +20,7 @@ namespace ApiMovies
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+            builder.Services.AddScoped<IMovieRepository, MovieRepository>();
             builder.Services.AddAutoMapper(typeof(MoviesMapper));
 
             builder.Services.AddDbContext<ApplicationDbContext>(options =>

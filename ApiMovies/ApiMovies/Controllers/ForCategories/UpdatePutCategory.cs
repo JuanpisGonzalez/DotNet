@@ -4,11 +4,11 @@ using ApiMovies.Repositories.IRepositories;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ApiMovies.Controllers.Movies
+namespace ApiMovies.Controllers.ForCategories
 {
     [Route("api/[Controller]")]
     [ApiController]
-    public class UpdatePutCategory: Categories
+    public class UpdatePutCategory : Categories
     {
         public UpdatePutCategory(ICategoryRepository categoryRepository, IMapper mapper) : base(categoryRepository, mapper) { }
 
@@ -31,7 +31,8 @@ namespace ApiMovies.Controllers.Movies
 
             var categoryExist = _categoryRepository.GetCategory(id);
 
-            if (categoryExist == null) { 
+            if (categoryExist == null)
+            {
                 return NotFound($"it couldn´t be find the category with id: {id}");
             }
 

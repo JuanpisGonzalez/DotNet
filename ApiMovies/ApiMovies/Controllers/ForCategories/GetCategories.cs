@@ -3,7 +3,7 @@ using ApiMovies.Repositories.IRepositories;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ApiMovies.Controllers.GetCategories
+namespace ApiMovies.Controllers.ForCategories
 {
     [Route("api/[Controller]")]
     [ApiController]

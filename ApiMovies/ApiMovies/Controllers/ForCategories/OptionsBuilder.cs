@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace ApiMovies.Controllers.Movies
+namespace ApiMovies.Controllers.ForCategories
 {
     public static class OptionsBuilder
     {
@@ -9,6 +9,6 @@ namespace ApiMovies.Controllers.Movies
             var optionsBuilder = new DbContextOptionsBuilder<Data.ApplicationDbContext>();
             optionsBuilder.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=ApiMovies;User ID=juanpis;Password=12345;Trusted_Connection=true;TrustServerCertificate=true;MultipleActiveResultSets=true");
             return optionsBuilder;
-        }   
+        }
     }
 }
