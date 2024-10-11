@@ -10,5 +10,6 @@ namespace ApiMovies.Data
         //Models
         public DbSet<Category> Categories { get; set; }
         public DbSet<Movie> Movies { get; set; }
+        public DbSet<User> Users { get; set; }
     }
 }
